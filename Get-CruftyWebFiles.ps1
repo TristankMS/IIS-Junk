@@ -15,6 +15,8 @@ param(
     $OutputCSVFile = ".\Cruft.csv"
 )
 
+Import-Module WebAdministration
+
 function StoreCruft
 {	
 	param
