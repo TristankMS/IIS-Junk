@@ -1,6 +1,6 @@
 ﻿# CruftyWebFiles
 # All care, no responsibility accepted by TristanK
-# 1.0 Initial 2016-11-24
+# 1.01 2016-11-25
 # 
 # Tries to identify extraneous stuff on an IIS web server in servable content areas
 #    i.e. those which are linked from apps attached to a website
@@ -12,7 +12,11 @@
 
 param(
     [string]
-    $OutputCSVFile = ".\Cruft.csv"
+    $OutputCSVFile = ".\Cruft.csv",
+    [string]
+    $DomainName = "TESTDOMAIN", # for username abuse detection
+    [string]
+    $WebsiteName = ""
 )
 
 Import-Module WebAdministration
@@ -64,8 +68,19 @@ function Get-CruftyFiles{
     $FolderPath = [System.Environment]::ExpandEnvironmentVariables($FolderPath)
     $servableFileTypes=("txt","xml")  # maybe INF, but not .ini, .config by default
     $Severities = @{"Critical" = 0; "High" = 1; "Medium" = 2; "Low" = 3; "Informational" = 4; "Other" = 5}
-    $passwordy = @{"password" = $Severities["High"]; "pwd" = $Severities["High"]; "pass" = $Severities["Medium"] ; "username" = $Severities["High"]; "user" = $Severities["Medium"] }
+    
     # higher confidence it's a bad word = higher severity. Still needs a human to look at it.
+    $passwordy = @{ "$DomainName[\\]\S*" = $Severities["Critical"]; # regex matches likely to be bad
+                    "password[\:\=]\S*" = $Severities["Critical"] ;
+                    "username[\:\=]\S*" = $Severities["Critical"];
+                    "pwd" = $Severities["High"]; 
+                    "password" = $Severities["High"];
+                    "$DomainName" = $Severities["High"];
+                    "username" = $Severities["High"];
+                    "pass" = $Severities["Medium"] ;
+                    "user" = $Severities["Medium"] # getting to the edge of medium due to likely harmless use
+                    }   
+    
     $extracrufty=("readme.*","sample.*","example.*","demo.*") # can replace with TXT etc if too noisy
         
        foreach($path in $FolderPath)
@@ -84,10 +99,10 @@ function Get-CruftyFiles{
                         $badInfo = Select-String -Path $item.FullName -Pattern $searchitem -AllMatches # (remove -Allmatches for speed over accuracy)
                         $item.BadData += "$searchitem=$($badInfo.Matches.Count);"
                         if($badInfo.Matches.Count -gt 0){
-                            if($item.Severity -eq ""){
+                            if([string]::IsNullOrEmpty($item.Severity)){
                                 $item.Severity = $passwordy[$searchitem]
                             }
-                            if($item.Severity -gt $searchitem.Value){
+                            if($item.Severity -gt $passwordy[$searchitem]){
                                 $item.Severity = $passwordy[$searchitem]
                             }
                         }
@@ -109,7 +124,16 @@ function Get-CruftyFiles{
        }
     }
 }
-$sites = Get-Website # "Default Web Site" # TESTING ONLY
+
+## actual script start
+
+if([string]::IsNullOrEmpty($WebsiteName)){
+    $sites = Get-Website # "Default Web Site" # TESTING ONLY
+}
+else{
+    $sites = Get-Website $WebsiteName
+}
+
 foreach ($site in $sites){
     Write-host -ForegroundColor Black -BackgroundColor Green $site.name
     #get first site binding to hopefully provide a request framework
