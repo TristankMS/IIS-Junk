@@ -1,6 +1,14 @@
 # IIS log archiving sample script (c) 2016
 # all care taken, no responsibility accepted by TristanK
 # Note: ZERO ERROR HANDLING
+#
+# Example: 
+#    .\dodgylogarchiver.ps1 -archiveFolder D:\Archive\Logs -daysToKeepOnWebServer 30 -daysToKeepInArchive 300 
+#
+#    ... which should be nondestructive, i.e. it'll copy but not delete. And if it looks like it's OK, "arm" it to delete the files.
+#
+#    .\dodgylogarchiver.ps1 -archiveFolder D:\Archive\Logs -daysToKeepOnWebServer 30 -daysToKeepInArchive 300 -actuallyRemoveOldLocalFiles -actuallyRemoveOldArchivedFiles
+# 
 # Tries to do an intelligent job of log archiving
 # Designed to run on local IIS server
 # Cheats by using XCOPY to un-set the archive bit for files which haven't changed
@@ -30,8 +38,16 @@ function SafeName($unsafename){
     $safename = $safename.Replace(":","-")
     $safename
 }
+
 Import-Module WebAdministration
 
+if([string]::IsNullOrEmpty($archiveFolder)){
+    ""
+    "Please specify -archiveFolder. This is where you want your local logs to be copied."
+    "Valid syntax is G:\Storage\Something or \\server\writableshare\something ."
+    ""
+    exit
+}
 #$archiveFolder = "G:\Storage\Logs"
 #$daysToKeepOnWebServer = 60
 #$daysToKeepInArchive = 900
@@ -44,6 +60,8 @@ $websites = get-website
 if($skipHTTPERR -ne $true){
     #just in case someone's Really Clever and has moved HTTPERR from its default location
     # default location
+    Write-Host -ForegroundColor Yellow -BackgroundColor Blue "HTTPERR Start"
+
     $httpErrFolder = "$env:windir\System32\LogFiles\"
     $httpParams = Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\HTTP\Parameters" -ErrorAction SilentlyContinue
     if($null -ne $httpParams.ErrorLoggingDir){
@@ -56,8 +74,12 @@ if($skipHTTPERR -ne $true){
     $targetdir = "" + $env:COMPUTERNAME + "_0_HTTPERR"
     $targetfolder = Join-Path $archiveFolder -ChildPath $targetdir
 
+    "Site:   HTTPERR - global HTTP transport error log" 
+    "Source: $httpErrFolder"
+    "Dest:   $targetfolder"
     #initially, copy everything because it's safer to do so
     #plus, cheat with XCOPY because it's faster! (unsets Archive attrib)
+    "Copying $httpErrFolder\*.log to $targetfolder"
     xcopy "$httpErrFolder\*.log" "$targetfolder" /M /I /Y
 
     #then, consider whether we need to clean up the local server
@@ -82,9 +104,12 @@ if($skipHTTPERR -ne $true){
             }
         }
     }
+    write-host -ForegroundColor Yellow -BackgroundColor Red "End of HTTPERR"
+    ""
 }
 
 foreach ($website in $websites){
+    Write-Host -ForegroundColor Yellow -BackgroundColor Blue "$($website.Name) Start"
     $logdir = [System.Environment]::ExpandEnvironmentVariables($website.logFile.directory)
     
     #try to avoid weird characters legal for a site name but not a filename
@@ -124,5 +149,6 @@ foreach ($website in $websites){
             }
         }
     }
+    write-host -ForegroundColor Yellow -BackgroundColor Red "End of $($website.Name)"
+    ""
 }
-
