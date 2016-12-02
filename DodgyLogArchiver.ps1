@@ -1,4 +1,4 @@
-﻿# log archiving sample script (c) 2016
+# log archiving sample script (c) 2016
 # all care taken, no responsibility accepted by TristanK
 # Note: ZERO ERROR HANDLING
 # Tries to do an intelligent job of log archiving
@@ -7,6 +7,21 @@
 # so we know which files we've already copied
 # (possible future "improvement" to go PS only)
 # Also finds HTTPERR logs and does the same thing with them
+
+param (
+[Parameter(Mandatory=$true,HelpMessage="Please enter the location you want to use for archived log storage:")]
+$archiveFolder="G:\Storage\Logs",
+[Parameter(Mandatory=$false)]  
+$daysToKeepOnWebServer = 60,
+[Parameter(Mandatory=$false)]
+$daysToKeepInArchive = 900,
+[Parameter(Mandatory=$false)]
+[switch]$skipHTTPERR,
+[Parameter(Mandatory=$false)]
+[switch]$actuallyRemoveOldLocalFiles,
+[Parameter(Mandatory=$false)]
+[switch]$actuallyRemoveOldArchivedFiles
+)
 
 function SafeName($unsafename){
     $safename = ""
@@ -17,12 +32,12 @@ function SafeName($unsafename){
 }
 Import-Module WebAdministration
 
-$archiveFolder = "G:\Storage\Logs"
-$daysToKeepOnWebServer = 60
-$daysToKeepInArchive = 900
-$skipHTTPERR = $false
-$actuallyRemoveOldLocalFiles = $true
-$actuallyRemoveOldArchivedFiles = $true
+#$archiveFolder = "G:\Storage\Logs"
+#$daysToKeepOnWebServer = 60
+#$daysToKeepInArchive = 900
+#$skipHTTPERR = $false
+#$actuallyRemoveOldLocalFiles = $true
+#$actuallyRemoveOldArchivedFiles = $true
 
 $websites = get-website
 
@@ -43,7 +58,7 @@ if($skipHTTPERR -ne $true){
 
     #initially, copy everything because it's safer to do so
     #plus, cheat with XCOPY because it's faster! (unsets Archive attrib)
-    xcopy "$httpErrFolder\*.log" "$targetfolder" /M /I
+    xcopy "$httpErrFolder\*.log" "$targetfolder" /M /I /Y
 
     #then, consider whether we need to clean up the local server
     $files=Get-ChildItem "$httpErrFolder\*.log"
@@ -82,7 +97,7 @@ foreach ($website in $websites){
 
     #initially, copy everything because it's safer to do so
     #plus, cheat with XCOPY because it's faster!
-    xcopy "$dirToLookAt\*.log" "$targetfolder" /M /I
+    xcopy "$dirToLookAt\*.log" "$targetfolder" /M /I /Y
 
     #then, consider whether we need to clean up the local server
     $files=Get-ChildItem "$dirToLookAt\*.log"
