@@ -1,9 +1,9 @@
-# log archiving sample script (c) 2016
+# IIS log archiving sample script (c) 2016
 # all care taken, no responsibility accepted by TristanK
 # Note: ZERO ERROR HANDLING
 # Tries to do an intelligent job of log archiving
 # Designed to run on local IIS server
-# Cheats by using XCOPY to un-set the archive bit
+# Cheats by using XCOPY to un-set the archive bit for files which haven't changed
 # so we know which files we've already copied
 # (possible future "improvement" to go PS only)
 # Also finds HTTPERR logs and does the same thing with them
@@ -12,15 +12,15 @@ param (
 [Parameter(Mandatory=$true,HelpMessage="Please enter the location you want to use for archived log storage:")]
 $archiveFolder="G:\Storage\Logs",
 [Parameter(Mandatory=$false)]  
-$daysToKeepOnWebServer = 60,
+$daysToKeepOnWebServer = 60,         # number of days to retain in current web server log directory
 [Parameter(Mandatory=$false)]
-$daysToKeepInArchive = 900,
+$daysToKeepInArchive = 900,          # number of days to retain in archive location, i.e. should typically be a higher number
 [Parameter(Mandatory=$false)]
-[switch]$skipHTTPERR,
+[switch]$skipHTTPERR,                # don't archive HTTPERR logs
 [Parameter(Mandatory=$false)]
-[switch]$actuallyRemoveOldLocalFiles,
+[switch]$actuallyRemoveOldLocalFiles, # don't just talk about it - actually remove files
 [Parameter(Mandatory=$false)]
-[switch]$actuallyRemoveOldArchivedFiles
+[switch]$actuallyRemoveOldArchivedFiles # don't just talk about it - actually keep the archive trimmed down to X days
 )
 
 function SafeName($unsafename){
@@ -66,6 +66,7 @@ if($skipHTTPERR -ne $true){
         if($file.LastWriteTime.AddDays($daysToKeepOnWebServer) -lt [DateTime]::Now){
             "$file is too old to keep locally"
             if($actuallyRemoveOldLocalFiles){
+                "   deleting..."
                 Remove-Item $file -Force
             }
         }
@@ -76,6 +77,7 @@ if($skipHTTPERR -ne $true){
         if($oldLogFile.LastWriteTime.AddDays($daysToKeepInArchive) -lt [DateTime]::Now){
             "$oldLogFile is too old to keep stored"
             if($actuallyRemoveOldArchivedFiles){
+                "   deleting..."
                 Remove-Item $oldLogFile -Force
             }
         }
@@ -97,6 +99,7 @@ foreach ($website in $websites){
 
     #initially, copy everything because it's safer to do so
     #plus, cheat with XCOPY because it's faster!
+    "Copying $dirToLookAt\*.log to $targetfolder"
     xcopy "$dirToLookAt\*.log" "$targetfolder" /M /I /Y
 
     #then, consider whether we need to clean up the local server
@@ -105,6 +108,7 @@ foreach ($website in $websites){
         if($file.LastWriteTime.AddDays($daysToKeepOnWebServer) -lt [DateTime]::Now){
             "$file is too old to keep locally"
             if($actuallyRemoveOldLocalFiles){
+                  "   deleting..."
                 Remove-Item $file -Force
             }
         }
@@ -115,6 +119,7 @@ foreach ($website in $websites){
         if($oldLogFile.LastWriteTime.AddDays($daysToKeepInArchive) -lt [DateTime]::Now){
             "$oldLogFile is too old to keep stored"
             if($actuallyRemoveOldArchivedFiles){
+                  "   deleting..."
                 Remove-Item $oldLogFile -Force
             }
         }
