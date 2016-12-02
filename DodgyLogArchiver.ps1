@@ -7,7 +7,7 @@
 #
 #    ... which should be nondestructive, i.e. it'll copy but not delete. And if it looks like it's OK, "arm" it to delete the files.
 #
-#    .\dodgylogarchiver.ps1 -archiveFolder D:\Archive\Logs -daysToKeepOnWebServer 30 -daysToKeepInArchive 300 -actuallyRemoveOldLocalFiles -actuallyRemoveOldArchivedFiles
+#    .\dodgylogarchiver.ps1 -archiveFolder D:\Archive\Logs -daysToKeepOnWebServer 30 -daysToKeepInArchive 300 -RemoveOldLocalFiles -RemoveOldArchivedFiles
 # 
 # Tries to do an intelligent job of log archiving
 # Designed to run on local IIS server
@@ -26,9 +26,9 @@ $daysToKeepInArchive = 900,          # number of days to retain in archive locat
 [Parameter(Mandatory=$false)]
 [switch]$skipHTTPERR,                # don't archive HTTPERR logs
 [Parameter(Mandatory=$false)]
-[switch]$actuallyRemoveOldLocalFiles, # don't just talk about it - actually remove files
+[switch]$RemoveOldLocalFiles, # don't just copy to archive, delete old files (older than daystokeepOnWebserver)
 [Parameter(Mandatory=$false)]
-[switch]$actuallyRemoveOldArchivedFiles # don't just talk about it - actually keep the archive trimmed down to X days
+[switch]$RemoveOldArchivedFiles # delete files from the archive to keep the archive trimmed down to daysToKeepInArchive days
 )
 
 function SafeName($unsafename){
@@ -52,8 +52,8 @@ if([string]::IsNullOrEmpty($archiveFolder)){
 #$daysToKeepOnWebServer = 60
 #$daysToKeepInArchive = 900
 #$skipHTTPERR = $false
-#$actuallyRemoveOldLocalFiles = $true
-#$actuallyRemoveOldArchivedFiles = $true
+#$RemoveOldLocalFiles = $true
+#$RemoveOldArchivedFiles = $true
 
 $websites = get-website
 
@@ -87,7 +87,7 @@ if($skipHTTPERR -ne $true){
     foreach($file in $files){
         if($file.LastWriteTime.AddDays($daysToKeepOnWebServer) -lt [DateTime]::Now){
             "$file is too old to keep locally"
-            if($actuallyRemoveOldLocalFiles){
+            if($RemoveOldLocalFiles){
                 "   deleting..."
                 Remove-Item $file -Force
             }
@@ -98,7 +98,7 @@ if($skipHTTPERR -ne $true){
         foreach($oldLogFile in $storedlogs){
         if($oldLogFile.LastWriteTime.AddDays($daysToKeepInArchive) -lt [DateTime]::Now){
             "$oldLogFile is too old to keep stored"
-            if($actuallyRemoveOldArchivedFiles){
+            if($RemoveOldArchivedFiles){
                 "   deleting..."
                 Remove-Item $oldLogFile -Force
             }
@@ -132,7 +132,7 @@ foreach ($website in $websites){
     foreach($file in $files){
         if($file.LastWriteTime.AddDays($daysToKeepOnWebServer) -lt [DateTime]::Now){
             "$file is too old to keep locally"
-            if($actuallyRemoveOldLocalFiles){
+            if($RemoveOldLocalFiles){
                   "   deleting..."
                 Remove-Item $file -Force
             }
@@ -143,7 +143,7 @@ foreach ($website in $websites){
         foreach($oldLogFile in $storedlogs){
         if($oldLogFile.LastWriteTime.AddDays($daysToKeepInArchive) -lt [DateTime]::Now){
             "$oldLogFile is too old to keep stored"
-            if($actuallyRemoveOldArchivedFiles){
+            if($RemoveOldArchivedFiles){
                   "   deleting..."
                 Remove-Item $oldLogFile -Force
             }
