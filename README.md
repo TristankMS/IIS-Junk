@@ -41,13 +41,13 @@ should work out where it is, and how to get rid of it, before something becomes 
 kills you.
 
 Examples: 
- - I renamed web.config to web.config.txt because there was already a .bak.
- - Or I saved a web.config file I was editing in notepad and also the .bak and they became .txt too
- - Or we use .xml files for configuration, and they're very proper
+ - A web.config renamed to web.config.txt because there was already a .bak!
+ - Or a saved web.config file that was edited in notepad... and maybe also the .bak... and they became .txt too
+ - Or .xml files used for configuration information, but aren't .config files... they're .xml files... so...
  
 .TXT and .XML file types are 99.9% considered _servable static files_ by IIS. So if one of those files
 contains sensitive information - like a username and password - and someone manages to guess/infer the name 
 and request it, you're *done*.
  
-Backups should not be in your servable content area. Keep 'em outside the site's wwwroot.
+Backups shouldn't be stored in a servable content area. Keep 'em outside the site's wwwroot.
 
