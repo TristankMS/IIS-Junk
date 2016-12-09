@@ -1,6 +1,7 @@
 ﻿# CruftyWebFiles
 # All care, no responsibility accepted by TristanK
 # 1.01 2016-11-25
+# 1.02 2016-12-09 Merry Xmas
 # 
 # Tries to identify extraneous stuff on an IIS web server in servable content areas
 #    i.e. those which are linked from apps attached to a website
@@ -14,7 +15,7 @@ param(
     [string]
     $OutputCSVFile = ".\Cruft.csv",
     [string]
-    $DomainName = "TESTDOMAIN", # for username abuse detection
+    $DomainName = "TESTDOMAIN", # for >> DOMAIN << \username abuse detection
     [string]
     $WebsiteName = ""
 )
