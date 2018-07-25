@@ -44,9 +44,9 @@ before something becomes crufty *and important* and kills you.
  - Or a saved web.config file that was edited in notepad... and maybe also the .bak... and they became .txt too
  - Or .xml files used for configuration information, but aren't .config files... they're .xml files... so...
  
-.TXT and .XML file types are 99.9% considered _servable static files_ by IIS. So if one of those files
-contains sensitive information - like a username and password - and someone manages to guess/infer the name 
-and request it, you're *done*.
+.TXT and .XML file types are 99.9% considered _servable static files_ by IIS. So if one of the above files
+- or any sampleware for that matter - contains sensitive information - like a **username and password** - and 
+someone manages to guess/infer the URL and request it, you're potentially *done*.
  
 Backups shouldn't be stored in a servable content area. Keep 'em outside the site's wwwroot.
 
