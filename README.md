@@ -3,7 +3,7 @@ Dumping ground for useful (and otherwise) IIS related scripts. YMMV.
 
 What's Here?
 
-TristanK's IIS Crudware. Don't assume there are no bugs; assume I tested these to the point of 
+_TristanK's IIS Crudware_. Don't assume there are no bugs; assume I tested these to the point of 
 "it works on my system" and if you're lucky, maybe a couple of others.
 
 ## DodgyLogArchiver
@@ -12,26 +12,34 @@ Takes IIS Log files associated with a website, and archives them. Optionally del
 
 Tries to work out what log files live where automatically, from IIS config.
 
-I suggest running without -RemoveOldLogFiles and -RemoveOldArchivedFiles   - at least until you're comfortable
-with how it works and handles retention.
+I suggest running _without_ -RemoveOldLogFiles and -RemoveOldArchivedFiles   - at least until you're comfortable
+with how it works and handles retention. And have backups of your archives if necessary.
+
+Designed to be run from a scheduled task each day.
+
 
 ## Get-CruftyWebFiles
 
-Scans IIS websites, apps and vdirs for crufty files, and evil cruft (eg config backups containing passwords).
+Scans IIS websites, apps and vdirs for _crufty_ files, and _evil cruft_ like config backups containing passwords.
 
-Produces .\Cruft.csv full of interesting and cryptic information, like word counts of "password" vs "pass"
+Produces .\Cruft.csv - full of interesting and cryptic information, like word counts of "password" vs "pass".
 
-Categorizes cruft with severity based on confidence of the word appearing. May enhance later.
+Categorizes cruft with _severity_ based on confidence of the word appearing being _evil_. May enhance later.
 
-Also identifies general sampleware based on names.
+Also identifies general _sampleware_ based on names.
 
 ### The Obligatory Rant
 
-_Cruft_ on a production web server is evil. It should not exist. Do you have cruft? If you have cruft, you
-should work out where it is, and how to get rid of it, before something becomes crufty and important and
-kills you.
+_Cruft_ on a production web server is evil. It should not exist.
 
-Examples of Bad Cruft Which Might Kill You: 
+Cruft could be _sampleware_, unused libraries, old versions of things, previous apps stored in "v2" folders,
+readme files, sample.txt files, demo files which come with the developer package the dev just unzipped into
+the web folder and never cleaned up.
+
+**Do you have cruft?** If you do have cruft, you should work out where it is, and how to get rid of it, 
+before something becomes crufty *and important* and kills you.
+
+#### Examples of Bad Cruft Which Might Kill You: 
  - A web.config renamed to web.config.txt because there was already a .bak!
  - Or a saved web.config file that was edited in notepad... and maybe also the .bak... and they became .txt too
  - Or .xml files used for configuration information, but aren't .config files... they're .xml files... so...
