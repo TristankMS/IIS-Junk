@@ -50,3 +50,4 @@ someone manages to guess/infer the URL and request it, you're potentially *done*
  
 Backups shouldn't be stored in a servable content area. Keep 'em outside the site's wwwroot.
 
+Related: https://blogs.technet.microsoft.com/tristank/2016/11/24/website-security-suggestions/ 
